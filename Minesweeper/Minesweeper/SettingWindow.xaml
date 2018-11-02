@@ -16,7 +16,7 @@
         <TextBox x:Name="tbxWidth" HorizontalAlignment="Left" Height="23" Margin="185,62,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="80"/>
         <TextBox x:Name="tbxBooms" HorizontalAlignment="Left" Height="23" Margin="185,102,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="80"/>
 
-        <RadioButton x:Name="rdbEazy" Content="Eazy" IsChecked="True" GroupName="grpRdbType" HorizontalAlignment="Left" Margin="25,25,0,0" VerticalAlignment="Top" Checked="rdbEazy_Checked"/>
+        <RadioButton x:Name="rdbEazy" Content="Eazy" GroupName="grpRdbType" HorizontalAlignment="Left" Margin="25,25,0,0" VerticalAlignment="Top" Checked="rdbEazy_Checked"/>
         <RadioButton x:Name="rdbMedium" Content="Medium" GroupName="grpRdbType" HorizontalAlignment="Left" Margin="25,65,0,0" VerticalAlignment="Top" Checked="rdbMedium_Checked"/>
         <RadioButton x:Name="rdbHard" Content="Hard" GroupName="grpRdbType" HorizontalAlignment="Left" Margin="25,105,0,0" VerticalAlignment="Top" Checked="rdbHard_Checked"/>
         <RadioButton x:Name="rdbCustom" Content="Custom" GroupName="grpRdbType" HorizontalAlignment="Left" Margin="25,145,0,0" VerticalAlignment="Top" Checked="rdbCustom_Checked"/>
