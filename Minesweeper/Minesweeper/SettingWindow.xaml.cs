@@ -38,6 +38,10 @@ namespace Minesweeper
 
         private void UpdateControlInfor()
         {
+            tbxBooms.Text = Information[2].ToString();
+            tbxHeight.Text = Information[0].ToString();
+            tbxWidth.Text = Information[1].ToString();
+            
             rdbCheck = Information[3];
 
             if (rdbCheck == 1)
@@ -56,10 +60,6 @@ namespace Minesweeper
             {
                 rdbEazy.IsChecked = true;
             }
-
-            tbxBooms.Text = Information[2].ToString();
-            tbxHeight.Text = Information[0].ToString();
-            tbxWidth.Text = Information[1].ToString();
         }
 
         private void btnOK_Click(object sender, RoutedEventArgs e)
