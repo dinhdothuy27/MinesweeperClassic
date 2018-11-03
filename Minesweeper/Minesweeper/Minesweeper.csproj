@@ -111,36 +111,11 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="images\checked.gif" />
-    <Resource Include="images\faceclock.gif" />
     <Resource Include="images\facedead.gif" />
     <Resource Include="images\faceooh.gif" />
-    <Resource Include="images\facepirate.gif" />
     <Resource Include="images\facesmile.gif" />
     <Resource Include="images\facewin.gif" />
-    <Resource Include="images\minesweeper.jpg" />
-    <Resource Include="images\moves-.gif" />
-    <Resource Include="images\moves0.gif" />
-    <Resource Include="images\moves1.gif" />
-    <Resource Include="images\moves2.gif" />
-    <Resource Include="images\moves3.gif" />
-    <Resource Include="images\moves4.gif" />
-    <Resource Include="images\moves5.gif" />
-    <Resource Include="images\moves6.gif" />
-    <Resource Include="images\moves7.gif" />
-    <Resource Include="images\moves8.gif" />
-    <Resource Include="images\moves9.gif" />
-    <Resource Include="images\notchecked.gif" />
     <Resource Include="images\shadow0.gif" />
-    <Resource Include="images\shadow1.gif" />
-    <Resource Include="images\shadow2.gif" />
-    <Resource Include="images\shadow3.gif" />
-    <Resource Include="images\shadow4.gif" />
-    <Resource Include="images\shadow5.gif" />
-    <Resource Include="images\shadow6.gif" />
-    <Resource Include="images\shadow7.gif" />
-    <Resource Include="images\shadow8.gif" />
-    <Resource Include="images\shadowbomb.gif" />
     <Resource Include="images\time-.gif" />
     <Resource Include="images\time0.gif" />
     <Resource Include="images\time1.gif" />
