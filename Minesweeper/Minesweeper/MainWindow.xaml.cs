@@ -109,6 +109,8 @@ namespace Minesweeper
 
         private void CreateDrawingMinesweeperEnv(int[] information)
         {
+            time = 0;
+            dispatcherTimer.Stop();
             MinesweeperState ms = new MinesweeperState();
             ms.time = 0;
             ms.face = 0;

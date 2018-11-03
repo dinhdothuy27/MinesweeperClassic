@@ -82,8 +82,8 @@ namespace Minesweeper
         private ImageControlObject[] borderBot;
 
         private ImageControlObject[][] squares;
-        private int height;
-        private int width;
+        private int height = 0;
+        private int width = 0;
 
         private BitmapImage[] squareBmpList;
         private BitmapImage[] borderBmpList;
@@ -170,9 +170,9 @@ namespace Minesweeper
 
         public void UpdateSquares(int[][] mapState)
         {
-            for (int i = 0; i < squares.Length; i++)
+            for (int i = 0; i < height; i++)
             {
-                for (int j = 0; j < squares[i].Length; j++)
+                for (int j = 0; j < width; j++)
                 {
                     squares[i][j].ChoiceImage(mapState[i][j]);
                 }
@@ -183,56 +183,17 @@ namespace Minesweeper
         {
             if (squares != null)
             {
-                for (int i = 0; i < squares.Length; i++)
+                for (int i = 0; i < height; i++)
                 {
                     if (squares[i] != null)
                     {
-                        for (int j = 0; j < squares[i].Length; j++)
+                        for (int j = 0; j < width; j++)
                         {
                             squares[i][j].RemoveFromCanvas();
                         }
                     }
                 }
             }
-        }
-
-        public void CreateNewEnvironment(MinesweeperState ms)
-        {
-            UpdateNumBoom(ms.numOfBoom);
-            UpdateNumTime(ms.time);
-            UpdateFace(ms.face);
-
-            if (ms.height > maxHeight)
-                ms.height = maxHeight;
-            if (ms.width > maxWidth)
-                ms.width = maxWidth;
-
-            RemoveOldFromCanvas();
-            squares = new ImageControlObject[ms.height][];
-            height = ms.height;
-            width = ms.width;
-            for (int i = 0; i < ms.height; i++)
-            {
-                squares[i] = new ImageControlObject[ms.width];
-                for (int j = 0; j < ms.width; j++)
-                {
-                    squares[i][j] = ImageControlObject.CreateImage(squareBmpList, canvas);
-                }
-            }
-            UpdateSquares(ms.mapState);
-            CreateBorder();
-
-            SetPostion(x, y);
-        }
-
-        private void CreateBorder()
-        {
-            // Update corner
-            borderTopLef.SetPosition(-whBorder + xSquareLeft, -whBorder + ySquareTop);
-            borderTopRight.SetPosition(width * whSquare + xSquareLeft, -whBorder + ySquareTop);
-            borderBotLef.SetPosition(-whBorder + xSquareLeft, height * whSquare + ySquareTop);
-            borderBotRight.SetPosition(width * whSquare + xSquareLeft, height * whSquare + ySquareTop);
-
 
             if (borderLeft != null)
             {
@@ -262,27 +223,55 @@ namespace Minesweeper
                     b.RemoveFromCanvas();
                 }
             }
-
-            borderLeft = new ImageControlObject[height];
-            borderRight = new ImageControlObject[height];
-            borderTop = new ImageControlObject[width];
-            borderBot = new ImageControlObject[width];
-            for (int i = 0; i < height; i++)
-            {
-                borderLeft[i] = ImageControlObject.CreateImage(borderBmpList[5], canvas);
-                borderRight[i] = ImageControlObject.CreateImage(borderBmpList[5], canvas);
-                borderLeft[i].SetPosition(-whBorder + xSquareLeft, i * whSquare + ySquareTop);
-                borderRight[i].SetPosition(width * whSquare + xSquareLeft, i * whSquare + ySquareTop);
-            }
-            for (int i = 0; i < width; i++)
-            {
-                borderTop[i] = ImageControlObject.CreateImage(borderBmpList[4], canvas);
-                borderBot[i] = ImageControlObject.CreateImage(borderBmpList[4], canvas);
-                borderTop[i].SetPosition(i * whSquare + xSquareLeft, -whBorder + ySquareTop);
-                borderBot[i].SetPosition(i * whSquare + xSquareLeft, height * whSquare + ySquareTop);
-            }
         }
 
+        public void CreateNewEnvironment(MinesweeperState ms)
+        {
+            UpdateNumBoom(ms.numOfBoom);
+            UpdateNumTime(ms.time);
+            UpdateFace(ms.face);
+
+            if (ms.height > maxHeight)
+                ms.height = maxHeight;
+            if (ms.width > maxWidth)
+                ms.width = maxWidth;
+
+            if (height != ms.height || width != ms.width)
+            {
+                RemoveOldFromCanvas();
+                squares = new ImageControlObject[ms.height][];
+                height = ms.height;
+                width = ms.width;
+                for (int i = 0; i < ms.height; i++)
+                {
+                    squares[i] = new ImageControlObject[ms.width];
+                    for (int j = 0; j < ms.width; j++)
+                    {
+                        squares[i][j] = ImageControlObject.CreateImage(squareBmpList, canvas);
+                    }
+                }
+
+                borderLeft = new ImageControlObject[height];
+                borderRight = new ImageControlObject[height];
+                borderTop = new ImageControlObject[width];
+                borderBot = new ImageControlObject[width];
+
+                for (int i = 0; i < height; i++)
+                {
+                    borderLeft[i] = ImageControlObject.CreateImage(borderBmpList[5], canvas);
+                    borderRight[i] = ImageControlObject.CreateImage(borderBmpList[5], canvas);
+                }
+                for (int i = 0; i < width; i++)
+                {
+                    borderTop[i] = ImageControlObject.CreateImage(borderBmpList[4], canvas);
+                    borderBot[i] = ImageControlObject.CreateImage(borderBmpList[4], canvas);
+                }
+            }
+            UpdateSquares(ms.mapState);
+
+            SetPostion(x, y);
+        }
+ 
         public void CreateNewEnvironment(string json)
         {
             MinesweeperState ms = JsonConvert.DeserializeObject<MinesweeperState>(json);
