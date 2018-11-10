@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Minesweeper"
         mc:Ignorable="d"
-        Title="Minesweeper" Height="600" Width="800" Background="Goldenrod">
+        Title="Minesweeper" Height="600" Width="800" Background="Goldenrod" KeyDown="Window_KeyDown">
     <Grid>
         <ScrollViewer Margin="0,0,0,0"
                       HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">

@@ -271,7 +271,7 @@ namespace Minesweeper
 
             SetPostion(x, y);
         }
- 
+
         public void CreateNewEnvironment(string json)
         {
             MinesweeperState ms = JsonConvert.DeserializeObject<MinesweeperState>(json);
@@ -373,15 +373,16 @@ namespace Minesweeper
             Win,
             Lose,
         }
-        int height;
-        int width;
-        int booms;
+        public int height;
+        public int width;
+        public int booms;
         int[][] rightState;
         int[][] curState;
         public PlayState playState;
         int totalBlank;
         public int totalFlag;
         int totalNonBoom;
+        public List<int> blankIndexList;
 
         public void CreateNewGame(int _height, int _width, int _booms)
         {
@@ -392,6 +393,7 @@ namespace Minesweeper
             totalFlag = 0;
             totalNonBoom = 0;
             playState = PlayState.Start;
+            blankIndexList = (new int[totalBlank]).Select((x, i) => i).ToList();
             rightState = new int[height][];
             curState = new int[height][];
             for (int i = 0; i < height; i++)
@@ -404,6 +406,11 @@ namespace Minesweeper
         public int[][] GetCurrentState()
         {
             return curState;
+        }
+
+        public int[][] GetRightState()
+        {
+            return rightState;
         }
 
         public void Action(int x, int y, int mouse = 0)
@@ -450,6 +457,7 @@ namespace Minesweeper
                             curState[x][y] = rightState[x][y];
                             totalBlank--;
                             totalNonBoom++;
+                            blankIndexList.Remove(x * width + height);
 
                             if (totalNonBoom == height * width - booms)
                             {
@@ -458,7 +466,7 @@ namespace Minesweeper
                                 {
                                     for (int j = 0; j < width; j++)
                                     {
-                                        if (curState[i][j] == MS_blank)
+                                        if (curState[i][j] == MS_blank|| curState[i][j] == MS_bombquestion)
                                         {
                                             curState[i][j] = MS_bombflagged;
                                         }
@@ -562,7 +570,7 @@ namespace Minesweeper
             }
         }
 
-        private int CountBoomAround(int i, int j, int[][] state, int checkWhat)
+        public int CountBoomAround(int i, int j, int[][] state, int checkWhat)
         {
             int count = 0;
             if (i == 0 && j == 0)
