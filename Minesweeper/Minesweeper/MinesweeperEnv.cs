@@ -26,6 +26,7 @@ namespace Minesweeper
         Square,
         Face,
         Setting,
+        AI,
     }
 
     public class DrawingMinesweeperEnv
@@ -41,11 +42,13 @@ namespace Minesweeper
         private const int yFaceTop = 0;
         private const int ySettingTop = 0;
         private const int ySquareTop = 50;
+        private const int yAITop = 0;
 
         private const int xNumBoomLeft = 0;
-        private const int xFaceLeft = 160;
-        private const int xTimeLeft = 320;
-        private const int xSettingLeft = 380;
+        private const int xFaceLeft = 100;
+        private const int xTimeLeft = 200;
+        private const int xSettingLeft = 300;
+        private const int xAILeft = 350;
 
         private const int xSquareLeft = 0;
 
@@ -54,6 +57,7 @@ namespace Minesweeper
         public const int whSquare = 24;
         private const int whSetting = 26;
         private const int whBorder = 10;
+        private const int whAI = 26;
 
         public const int maxHeight = 40;
         public const int maxWidth = 60;
@@ -70,6 +74,8 @@ namespace Minesweeper
         private ImageControlObject face;
 
         private ImageControlObject setting;
+
+        private ImageControlObject ai;
 
         private ImageControlObject borderTopLef;
         private ImageControlObject borderTopRight;
@@ -88,7 +94,7 @@ namespace Minesweeper
         private BitmapImage[] squareBmpList;
         private BitmapImage[] borderBmpList;
 
-        public DrawingMinesweeperEnv(Canvas cnv, BitmapImage[] numberList, BitmapImage[] faceList, BitmapImage[] squareList, BitmapImage _setting, BitmapImage[] bolderList)
+        public DrawingMinesweeperEnv(Canvas cnv, BitmapImage[] numberList, BitmapImage[] faceList, BitmapImage[] squareList, BitmapImage _setting, BitmapImage[] bolderList, BitmapImage _ai)
         {
             canvas = cnv;
             squareBmpList = squareList;
@@ -103,6 +109,8 @@ namespace Minesweeper
             face = ImageControlObject.CreateImage(faceList, canvas);
 
             setting = ImageControlObject.CreateImage(_setting, canvas);
+
+            ai = ImageControlObject.CreateImage(_ai, canvas);
 
             borderTopLef = ImageControlObject.CreateImage(bolderList[0], canvas);
             borderTopRight = ImageControlObject.CreateImage(bolderList[1], canvas);
@@ -135,6 +143,10 @@ namespace Minesweeper
             else if (point.X >= xSettingLeft && point.X < xSettingLeft + whSetting && point.Y >= ySettingTop && point.Y < ySettingTop + whSetting)
             {
                 upMouseDelegate?.Invoke(ControlType.Setting, e.ChangedButton);
+            }
+            else if (point.X >= xAILeft && point.X < xAILeft + whAI && point.Y >= yAITop && point.Y < yAITop + whAI)
+            {
+                upMouseDelegate?.Invoke(ControlType.AI, e.ChangedButton);
             }
         }
 
@@ -307,6 +319,8 @@ namespace Minesweeper
             face.SetPosition(x + xFaceLeft, y + yFaceTop);
 
             setting.SetPosition(x + xSettingLeft, y + ySettingTop);
+
+            ai.SetPosition(x + xAILeft, y + yAITop);
 
             if (squares != null)
             {

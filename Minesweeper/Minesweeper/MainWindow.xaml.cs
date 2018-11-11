@@ -91,7 +91,7 @@ namespace Minesweeper
             var faceList = new System.Drawing.Bitmap[] { facesmile, faceooh, facedead, facewin };
             var squareList = new System.Drawing.Bitmap[] { blank, bombdeath, bombflagged, bombmisflagged, bombquestion, bombrevealed, open0, open1, open2, open3, open4, open5, open6, open7, open8, shadow0 };
             var borderList = new System.Drawing.Bitmap[] { bordertopleft, bordertopright, borderbotleft, borderbotright, bordertopbot, borderleftright };
-            dme = new DrawingMinesweeperEnv(cnvMain, numList.Select(x => BmpToBmpImg(x)).ToArray(), faceList.Select(x => BmpToBmpImg(x)).ToArray(), squareList.Select(x => BmpToBmpImg(x)).ToArray(), BmpToBmpImg(setting), borderList.Select(x => BmpToBmpImg(x)).ToArray());
+            dme = new DrawingMinesweeperEnv(cnvMain, numList.Select(x => BmpToBmpImg(x)).ToArray(), faceList.Select(x => BmpToBmpImg(x)).ToArray(), squareList.Select(x => BmpToBmpImg(x)).ToArray(), BmpToBmpImg(setting), borderList.Select(x => BmpToBmpImg(x)).ToArray(), BmpToBmpImg(AI));
             dme.upMouseDelegate += MouseClickControl;
             dme.SetPostion(10, 10);
 
@@ -173,6 +173,11 @@ namespace Minesweeper
                             mr.CreateNewGame(height, width, booms);
                         }
                         break;
+                    case ControlType.AI:
+                        MinesweeperAI.Action act = ma.GetActionFromRule(mr);
+                        if (act.mouse >= 0)
+                            MouseClickControl(ControlType.Square, (act.mouse == 0) ? MouseButton.Left : MouseButton.Right, act.x, act.y);
+                        break;
                     default:
                         break;
                 }
@@ -211,18 +216,8 @@ namespace Minesweeper
                 newWidth = 800;
             if (newHeight > 600)
                 newHeight = 600;
-            this.Width = newWidth + 80;
+            this.Width = newWidth + 40;
             this.Height = newHeight + 40;
-        }
-
-        private void Window_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.T)
-            {
-                MinesweeperAI.Action act = ma.GetActionFromRule(mr);
-                if (act.mouse >= 0)
-                    MouseClickControl(ControlType.Square, (act.mouse == 0) ? MouseButton.Left : MouseButton.Right, act.x, act.y);
-            }
         }
     }
 }
