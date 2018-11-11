@@ -56,49 +56,6 @@ namespace Minesweeper
 
         }
 
-        public void Trainning(int times)
-        {
-            MinesweeperRule mr = new MinesweeperRule();
-            int winCount = 0;
-            for (int count = 0; count < times; count++)
-            {
-                height = 8;
-                width = 8;
-                booms = 10;
-                mr.CreateNewGame(height, width, booms);
-                int c = 0;
-                List<Action> acts = new List<Action>();
-
-                while (c < height * width)
-                {
-                    c++;
-                    int remainBoom = booms - mr.totalFlag;
-                    Action act = GetActionFromRule(mr);
-                    mr.Action(act.x, act.y, act.mouse);
-                    acts.Add(act);
-
-                    if (mr.playState == MinesweeperRule.PlayState.Win || mr.playState == MinesweeperRule.PlayState.Lose)
-                    {
-                        break;
-                    }
-                }
-
-                var rightState = mr.GetRightState();
-                for (int i = 0; i < acts.Count; i++)
-                {
-                }
-                if (mr.playState == MinesweeperRule.PlayState.Win)
-                {
-                    winCount++;
-                }
-
-                if (count % 500 == 499)
-                    Console.WriteLine(string.Format("Win {0}/{1} games", winCount, count + 1));
-            }
-
-            Console.WriteLine(string.Format("Win {0}/{1} games", winCount, times));
-        }
-
         public Action GetActionFromRule(MinesweeperRule mr)
         {
             height = mr.height;
@@ -144,6 +101,11 @@ namespace Minesweeper
             if (blankList.Count == height * width)
             {
                 return new Action { x = rd.Next(height), y = rd.Next(width), mouse = 0 };
+            }
+
+            if (blankList.Count == 0)
+            {
+                return new Action { x = 0, y = 0, mouse = -1 };
             }
 
             for (int i = 0; i < height; i++)
@@ -258,54 +220,298 @@ namespace Minesweeper
                 }
             }
 
-
-
-            return new Action { x = 0, y = 0, mouse = -1 };
-        }
-
-        private string GetState(int x, int y, int[][] aiView, int remainBoom)
-        {
-            int[][] subView = new int[5][]; // subView is 5x5 int array array
-            for (int i = 0; i < 5; i++)
+            Dictionary<Position, double> estimations = blankBoundary.ToDictionary(x => x, x => 0.0);
+            List<List<Position>> groupPosList = new List<List<Position>>();
+            List<Position> posList = new List<Position>();
+            Queue<Position> groupPosQue = new Queue<Position>();
+            if (blankBoundary.Count > 0)
+                groupPosQue.Enqueue(blankBoundary.First());
+            while (blankBoundary.Count > 0 && groupPosQue.Count > 0)
             {
-                subView[i] = new int[5];
+                var pos = groupPosQue.Dequeue();
+                posList.Add(pos);
+                blankBoundary.Remove(pos);
+                foreach (var num in numberNearBlank[pos])
+                {
+                    foreach (var blank in blankNearNumber[num])
+                    {
+                        if (blankBoundary.Contains(blank) && !groupPosQue.Contains(blank))
+                        {
+                            groupPosQue.Enqueue(blank);
+                        }
+                    }
+                }
+
+                if (groupPosQue.Count == 0)
+                {
+                    groupPosList.Add(posList);
+                    posList = new List<Position>();
+                    if (blankBoundary.Count > 0)
+                    {
+                        groupPosQue.Enqueue(blankBoundary.First());
+                    }
+                }
             }
 
-            for (int i = 0; i < 5; i++)
+            double placedFlag = 0;
+            double alpha = 0.1;
+            double epsilon = 0.05;
+            double addition = 0;
+            double max = -1000;
+            double est = 0;
+            double gama = 0.9;
+
+            foreach (var groupPos in groupPosList)
             {
-                for (int j = 0; j < 5; j++)
+                List<Position> numList = new List<Position>();
+                foreach (var pos in groupPos)
                 {
-                    int _x = x - 2 + i;
-                    int _y = y + 2 - j;
-                    if (_x < 0 || _x >= height || _y < 0 || _y >= width)
+                    foreach (var num in numberNearBlank[pos])
                     {
-                        subView[i][j] = AI_wall;
+                        if (!numList.Contains(num))
+                        {
+                            numList.Add(num);
+                        }
+                    }
+                }
+
+                List<double> placedFlagList = new List<double>();
+
+                int enchos = groupPos.Count * 20;
+                for (int count = 0; count < enchos; count++)
+                {
+                    if (count < enchos * 3 / 4)
+                    {
+                        epsilon = 0.05;
                     }
                     else
                     {
-                        subView[i][j] = aiView[_x][_y];
+                        epsilon = 0;
                     }
-                }
-            }
 
-            int blankCount = 0;
-            List<byte> hashByte = new List<byte>();
+                    List<Position> tempGroupPos = groupPos.ToList();
+                    Dictionary<Position, int> actions = groupPos.ToDictionary(x => x, x => 0); // 1: place flag, -1: don't place flag, 0: not yet action
+                    List<Position> positiveAction = new List<Position>();
+                    Dictionary<Position, int> numOfBlankAround = blankNearNumber.ToDictionary(x => x.Key, x => x.Value.Count);
+                    int[][] tempAiView = aiView.Select(x => x.ToArray()).ToArray();
+                    bool isFirst = true;
 
-            for (int i = 0; i < 5; i++)
-            {
-                for (int j = 0; j < 5; j++)
-                {
-                    if (subView[i][j] == AI_blank)
+                    while (true)
                     {
-                        blankCount++;
+                        bool checkWrong = false;
+                        for (int i = 0; i < numList.Count; i++)
+                        {
+                            if (tempAiView[numList[i].x][numList[i].y] < 0 || tempAiView[numList[i].x][numList[i].y] > numOfBlankAround[numList[i]])
+                            {
+                                checkWrong = true;
+                                break;
+                            }
+                        }
+                        if (checkWrong)
+                        {
+                            gama = 1;
+                            // update estimatios when wrong
+                            for (int i = 0; i < positiveAction.Count; i++)
+                            {
+                                var pos = positiveAction[i];
+                                estimations[pos] += alpha * gama * ((-1) * actions[pos] - estimations[pos]);
+                                gama *= 0.8;
+                            }
+
+                            break;
+                        }
+                        if (!actions.Values.Contains(0))
+                        {
+                            // update estimatios when success
+                            int hs = 1;
+                            if (estimations.Values.Where(x => x == 1).Count() > remainBoom)
+                            {
+                                hs = -1;
+                            }
+
+                            gama = 1;
+                            for (int i = 0; i < positiveAction.Count; i++)
+                            {
+                                var pos = positiveAction[i];
+                                estimations[pos] += alpha * gama * (hs * actions[pos] - estimations[pos]);
+                                gama *= 0.8;
+                            }
+
+                            placedFlagList.Add(actions.Values.Where(x => x == 1).Count());
+
+                            break;
+                        }
+
+                        List<Position> needNoFlagList = new List<Position>();
+                        foreach (var num in numList)
+                        {
+                            if (tempAiView[num.x][num.y] == 0)
+                            {
+                                foreach (var blank in blankNearNumber[num])
+                                {
+                                    if (actions[blank] == 0 && !needNoFlagList.Contains(blank))
+                                    {
+                                        needNoFlagList.Add(blank);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (needNoFlagList.Count > 0)
+                        {
+                            foreach (var blank in needNoFlagList)
+                            {
+                                actions[blank] = -1;
+                                tempGroupPos.Remove(blank);
+                                foreach (var num in numberNearBlank[blank])
+                                {
+                                    numOfBlankAround[num]--;
+                                }
+                            }
+                            continue;
+                        }
+
+                        List<Position> needFlagList = new List<Position>();
+                        foreach (var num in numList)
+                        {
+                            if (tempAiView[num.x][num.y] == numOfBlankAround[num])
+                            {
+                                foreach (var blank in blankNearNumber[num])
+                                {
+                                    if (actions[blank] == 0 && !needFlagList.Contains(blank))
+                                    {
+                                        needFlagList.Add(blank);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (needFlagList.Count > 0)
+                        {
+                            foreach (var blank in needFlagList)
+                            {
+                                actions[blank] = 1;
+                                tempGroupPos.Remove(blank);
+                                foreach (var num in numberNearBlank[blank])
+                                {
+                                    numOfBlankAround[num]--;
+                                    tempAiView[num.x][num.y]--;
+                                }
+                            }
+                            continue;
+                        }
+
+                        if (isFirst)
+                        {
+                            Position pos = groupPos[rd.Next(groupPos.Count)];
+                            int act = rd.Next(2) * 2 - 1;
+                            actions[pos] = act;
+                            tempGroupPos.Remove(pos);
+                            positiveAction.Add(pos);
+                            foreach (var num in numberNearBlank[pos])
+                            {
+                                numOfBlankAround[num]--;
+                                if (act == 1)
+                                    tempAiView[num.x][num.y]--;
+                            }
+                            isFirst = false;
+                        }
+                        else
+                        {
+                            if (rd.NextDouble() < epsilon)
+                            {
+                                Position pos = tempGroupPos[rd.Next(tempGroupPos.Count)];
+                                int act = rd.Next(2) * 2 - 1;
+                                actions[pos] = act;
+                                tempGroupPos.Remove(pos);
+                                positiveAction.Add(pos);
+                                foreach (var num in numberNearBlank[pos])
+                                {
+                                    numOfBlankAround[num]--;
+                                    if (act == 1)
+                                        tempAiView[num.x][num.y]--;
+                                }
+                            }
+                            else
+                            {
+                                List<Position> bestChoiceList = new List<Position>();
+                                max = -1000;
+                                foreach (var pos in tempGroupPos)
+                                {
+                                    est = estimations[pos] < 0 ? -estimations[pos] : estimations[pos];
+                                    if (est > max)
+                                    {
+                                        max = est;
+                                        bestChoiceList = new List<Position>();
+                                        bestChoiceList.Add(pos);
+                                    }
+                                    else if (est == max)
+                                    {
+                                        bestChoiceList.Add(pos);
+                                    }
+                                }
+
+                                Position bestChoice = bestChoiceList[rd.Next(bestChoiceList.Count)];
+                                int act = estimations[bestChoice] >= 0 ? 1 : -1;
+                                actions[bestChoice] = act;
+                                tempGroupPos.Remove(bestChoice);
+                                positiveAction.Add(bestChoice);
+                                foreach (var num in numberNearBlank[bestChoice])
+                                {
+                                    numOfBlankAround[num]--;
+                                    if (act == 1)
+                                        tempAiView[num.x][num.y]--;
+                                }
+                            }
+                        }
                     }
-                    hashByte.Add((byte)subView[i][j]);
+                }
+
+                if (placedFlagList.Count > 0)
+                {
+                    placedFlag += placedFlagList.Sum() * 1.0 / placedFlagList.Count;
+                }
+                else
+                {
+                    addition += groupPos.Count;
                 }
             }
 
-            if (remainBoom > blankCount) remainBoom = blankCount;
-            hashByte.Add((byte)(remainBoom));
-            return Encoding.Default.GetString(hashByte.ToArray());
+            List<Position> bestPosList = new List<Position>();
+            max = -1000;
+            foreach (var pos in estimations.Keys)
+            {
+                est = estimations[pos] < 0 ? -estimations[pos] : estimations[pos];
+                if (est > max)
+                {
+                    max = est;
+                    bestPosList = new List<Position>();
+                    bestPosList.Add(pos);
+                }
+                else if (est == max)
+                {
+                    bestPosList.Add(pos);
+                }
+            }
+
+            var bestPos = bestPosList[rd.Next(bestPosList.Count)];
+
+            est = 0;
+            if (unknownBlank.Count > 0)
+            {
+                est = (remainBoom - placedFlag) * 1.0 / (unknownBlank.Count + addition) * 2 - 1;
+                foreach (var blk in unknownBlank)
+                {
+                    estimations[blk] = est;
+                }
+            }
+
+            if (max < 0.9 && (est > max || -est > max))
+            {
+                bestPos = unknownBlank[rd.Next(unknownBlank.Count)];
+            }
+
+            return new Action { x = bestPos.x, y = bestPos.y, mouse = estimations[bestPos] >= 0 ? 1 : 0 };
         }
     }
 }
