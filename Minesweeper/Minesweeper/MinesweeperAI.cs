@@ -494,7 +494,11 @@ namespace Minesweeper
                 }
             }
 
-            var bestPos = bestPosList[rd.Next(bestPosList.Count)];
+            Position bestPos = new Position(0, 0);
+            if (bestPosList.Count > 0)
+            {
+                bestPos = bestPosList[rd.Next(bestPosList.Count)];
+            }
 
             est = 0;
             if (unknownBlank.Count > 0)
