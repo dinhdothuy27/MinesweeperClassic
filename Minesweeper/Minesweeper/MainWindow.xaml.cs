@@ -129,7 +129,7 @@ namespace Minesweeper
             UpdateSizeWindow(ms.height, ms.width);
         }
 
-        private void MouseClickControl(ControlType ct, MouseButton mouse, int row, int col)
+        private void MouseClickControl(ControlType ct, MouseButton mouse, int row = 0, int col = 0)
         {
             if (mouse == MouseButton.Left)
             {
@@ -218,6 +218,14 @@ namespace Minesweeper
                 newHeight = 600;
             this.Width = newWidth + 40;
             this.Height = newHeight + 40;
+        }
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(Key.A == e.Key)
+            {
+                MouseClickControl(ControlType.AI, MouseButton.Left, 0, 0);
+            }
         }
     }
 }
