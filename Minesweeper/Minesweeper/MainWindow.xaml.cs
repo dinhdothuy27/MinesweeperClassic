@@ -274,6 +274,7 @@ namespace Minesweeper
             }
             else if (Key.S == e.Key)
             {
+                ms.UpdateSizeAndBoom(height, width, booms);
                 int bx = (int)GetMousePosition().X;
                 int by = (int)GetMousePosition().Y;
                 mr.SetCurrentState(ms.GetMRState());
@@ -281,7 +282,7 @@ namespace Minesweeper
                 int hSquare = (int)(yRB - yTL) / height;
                 int count = 0;
 
-                while (count < width * width)
+                while (count < width * width * 2)
                 {
                     MinesweeperAI.Action act = ma.GetActionFromRule(mr);
 
@@ -299,7 +300,7 @@ namespace Minesweeper
                     }
 
                     SetCursorPos(bx, by);
-                    Thread.Sleep(50);
+                    Thread.Sleep(60);
 
                     mr.SetCurrentState(ms.GetMRState());
                     var curState = mr.GetCurrentState();
