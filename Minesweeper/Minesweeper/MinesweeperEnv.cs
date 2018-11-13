@@ -422,6 +422,11 @@ namespace Minesweeper
             return curState;
         }
 
+        public void SetCurrentState(int[][] _curState)
+        {
+            curState = _curState;
+        }
+
         public void Action(int x, int y, int mouse = 0)
         {
             if (x < 0 || x >= height || y < 0 || y >= width)

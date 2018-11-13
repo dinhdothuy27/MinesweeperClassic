@@ -18,6 +18,8 @@ using Newtonsoft.Json;
 
 namespace Minesweeper
 {
+    using System.Runtime.InteropServices;
+    using System.Threading;
     using System.Windows.Threading;
     using static Properties.Resources;
 
@@ -26,6 +28,32 @@ namespace Minesweeper
     /// </summary>
     public partial class MainWindow : Window
     {
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool GetCursorPos(ref Win32Point pt);
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct Win32Point
+        {
+            public Int32 X;
+            public Int32 Y;
+        };
+        public static Point GetMousePosition()
+        {
+            Win32Point w32Mouse = new Win32Point();
+            GetCursorPos(ref w32Mouse);
+            return new Point(w32Mouse.X, w32Mouse.Y);
+        }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        static extern bool SetCursorPos(int x, int y);
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
+        public static extern void mouse_event(uint dwFlags, int dx, int dy, int cButtons, int dwExtraInfo);
+        private const uint MOUSEEVENTF_LEFTDOWN = 0x02;
+        private const uint MOUSEEVENTF_LEFTUP = 0x04;
+        private const uint MOUSEEVENTF_RIGHTDOWN = 0x08;
+        private const uint MOUSEEVENTF_RIGHTUP = 0x10;
+
         public struct SaveSettingInfor
         {
             public int[] SettingWindowInformation;
@@ -220,11 +248,87 @@ namespace Minesweeper
             this.Height = newHeight + 40;
         }
 
+        double xTL = 0;
+        double yTL = 0;
+        double xRB = 0;
+        double yRB = 0;
+        MinesweeperSolver ms = new MinesweeperSolver(new System.Drawing.Bitmap[] { blank, bombdeath, bombflagged, bombmisflagged, bombquestion, bombrevealed, open0, open1, open2, open3, open4, open5, open6, open7, open8, shadow0 });
+
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
-            if(Key.A == e.Key)
+            if (Key.A == e.Key)
             {
                 MouseClickControl(ControlType.AI, MouseButton.Left, 0, 0);
+            }
+            else if (Key.T == e.Key)
+            {
+                xTL = GetMousePosition().X;
+                yTL = GetMousePosition().Y;
+            }
+            else if (Key.X == e.Key)
+            {
+                xRB = GetMousePosition().X;
+                yRB = GetMousePosition().Y;
+                ms.UpdateShapePostion(xTL, yTL, xRB, yRB);
+                ms.UpdateSizeAndBoom(height, width, booms);
+            }
+            else if (Key.S == e.Key)
+            {
+                int bx = (int)GetMousePosition().X;
+                int by = (int)GetMousePosition().Y;
+                mr.SetCurrentState(ms.GetMRState());
+                int wSquare = (int)(xRB - xTL) / width;
+                int hSquare = (int)(yRB - yTL) / height;
+                int count = 0;
+
+                while (count < width * width)
+                {
+                    MinesweeperAI.Action act = ma.GetActionFromRule(mr);
+
+                    int x = (int)(act.y * wSquare + wSquare / 2 + xTL);
+                    int y = (int)(act.x * hSquare + hSquare / 2 + yTL);
+                    SetCursorPos(x, y);
+
+                    if (act.mouse == 0)
+                    {
+                        mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                    }
+                    else
+                    {
+                        mouse_event(MOUSEEVENTF_RIGHTDOWN | MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+                    }
+
+                    SetCursorPos(bx, by);
+                    Thread.Sleep(50);
+
+                    mr.SetCurrentState(ms.GetMRState());
+                    var curState = mr.GetCurrentState();
+                    dme.UpdateSquares(curState);
+
+                    int blankCount = 0;
+                    int abnormalCount = 0;
+                    for (int i = 0; i < height; i++)
+                    {
+                        for (int j = 0; j < width; j++)
+                        {
+                            if(curState[i][j] == MinesweeperRule.MS_blank)
+                            {
+                                blankCount++;
+                            }
+                            if(curState[i][j] == MinesweeperRule.MS_bombdeath || curState[i][j] == MinesweeperRule.MS_bombmisflagged ||
+                                curState[i][j] == MinesweeperRule.MS_bombrevealed)
+                            {
+                                abnormalCount++;
+                            }
+                        }
+                    }
+                    if(blankCount ==0 || abnormalCount>0)
+                    {
+                        break;
+                    }
+
+                    count++;
+                }
             }
         }
     }
