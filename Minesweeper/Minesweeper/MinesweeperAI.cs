@@ -510,7 +510,7 @@ namespace Minesweeper
                 }
             }
 
-            if (max < 0.9 && (est > max || -est > max))
+            if (max < 0.9 && est > max)
             {
                 bestPos = unknownBlank[rd.Next(unknownBlank.Count)];
             }
