@@ -112,7 +112,7 @@ namespace Minesweeper
             DisableTextBlock();
             tbxBooms.Text = "99";
             tbxHeight.Text = "16";
-            tbxWidth.Text = "30";
+            tbxWidth.Text = "31";
         }
 
         private void rdbCustom_Checked(object sender, RoutedEventArgs e)
