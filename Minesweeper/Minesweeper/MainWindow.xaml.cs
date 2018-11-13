@@ -53,6 +53,8 @@ namespace Minesweeper
         private const uint MOUSEEVENTF_LEFTUP = 0x04;
         private const uint MOUSEEVENTF_RIGHTDOWN = 0x08;
         private const uint MOUSEEVENTF_RIGHTUP = 0x10;
+        const uint MOUSEEVENTF_MIDDLEDOWN = 0x0020;
+        const uint MOUSEEVENTF_MIDDLEUP = 0x0040;
 
         public struct SaveSettingInfor
         {
@@ -282,7 +284,7 @@ namespace Minesweeper
                 int hSquare = (int)(yRB - yTL) / height;
                 int count = 0;
 
-                while (count < width * width * 2)
+                while (count < width * width)
                 {
                     MinesweeperAI.Action act = ma.GetActionFromRule(mr);
 
@@ -293,6 +295,10 @@ namespace Minesweeper
                     if (act.mouse == 0)
                     {
                         mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                    }
+                    else if(act.mouse == 2)
+                    {
+                        mouse_event(MOUSEEVENTF_MIDDLEDOWN | MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
                     }
                     else
                     {
