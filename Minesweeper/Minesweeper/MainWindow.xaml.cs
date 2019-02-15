@@ -107,7 +107,7 @@ namespace Minesweeper
         private int width;
         private int booms;
         private int time;
-        DispatcherTimer dispatcherTimer = new DispatcherTimer();
+        System.Timers.Timer timer = new System.Timers.Timer(1000);
         MinesweeperAI ma = new MinesweeperAI();
 
         public MainWindow()
@@ -133,15 +133,14 @@ namespace Minesweeper
             mr.CreateNewGame(height, width, booms);
 
             UpdateSizeWindow(saveSettingInfor.SettingWindowInformation[0], saveSettingInfor.SettingWindowInformation[1]);
-
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
-            dispatcherTimer.Tick += (s, e) => { time++; dme.UpdateNumTime(time); };
+            timer.Elapsed += HandleTimerElapsed;
+            timer.Start();
         }
 
         private void CreateDrawingMinesweeperEnv(int[] information)
         {
             time = 0;
-            dispatcherTimer.Stop();
+            timer.Stop();
             MinesweeperState ms = new MinesweeperState();
             ms.time = 0;
             ms.face = 0;
@@ -159,6 +158,11 @@ namespace Minesweeper
             UpdateSizeWindow(ms.height, ms.width);
         }
 
+        private void HandleTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            Application.Current.Dispatcher.Invoke(new Action(() => { time++; dme.UpdateNumTime(time); }));
+        }
+
         private void MouseClickControl(ControlType ct, MouseButton mouse, int row = 0, int col = 0)
         {
             if (mouse == MouseButton.Left)
@@ -169,20 +173,20 @@ namespace Minesweeper
                         if (mr.playState == MinesweeperRule.PlayState.Start)
                         {
                             time = 0;
-                            dispatcherTimer.Start();
+                            timer.Start();
                         }
                         mr.Action(row, col);
                         dme.UpdateSquares(mr.GetCurrentState());
                         if (mr.playState == MinesweeperRule.PlayState.Win)
                         {
                             dme.UpdateFace(MinesweeperRule.F_facewin);
-                            dispatcherTimer.Stop();
+                            timer.Stop();
                             MessageBox.Show("Win game!");
                         }
                         else if (mr.playState == MinesweeperRule.PlayState.Lose)
                         {
                             dme.UpdateFace(MinesweeperRule.F_facedead);
-                            dispatcherTimer.Stop();
+                            timer.Stop();
                         }
                         break;
                     case ControlType.Face:
@@ -220,7 +224,7 @@ namespace Minesweeper
                         if (mr.playState == MinesweeperRule.PlayState.Start)
                         {
                             time = 0;
-                            dispatcherTimer.Start();
+                            timer.Start();
                         }
                         mr.Action(row, col, 1);
                         dme.UpdateSquares(mr.GetCurrentState());
